@@ -8,17 +8,21 @@ import type { Ref } from '@vue/composition-api'
 
 import { globalContext, globalNuxt } from './globals'
 import { validateKey } from './utils'
+import { useContext } from './context'
 
 function getValue<T>(value: T | (() => T)): T {
   if (value instanceof Function) return value()
   return value
 }
 
-let data: any = {}
+const useContextRefs = () => {
+  const { ssrContext } = useContext();
 
-export function setSSRContext(ssrContext: any) {
-  data = Object.assign({}, {})
-  ssrContext.nuxt.ssrRefs = data
+  if (ssrContext) {
+    return ssrContext.nuxt.ssrRefs
+  }
+
+  return {}
 }
 
 const isProxyable = (val: unknown): val is Record<string, unknown> =>
@@ -61,6 +65,8 @@ const ssrValue = <T>(value: T | (() => T), key: string): T => {
  */
 export const ssrRef = <T>(value: T | (() => T), key?: string): Ref<T> => {
   validateKey(key)
+  const data = useContextRefs();
+
   let val = ssrValue(value, key)
 
   if (process.client) return ref(val) as Ref<T>
@@ -107,7 +113,7 @@ export const ssrRef = <T>(value: T | (() => T), key?: string): Ref<T> => {
  * This helper creates a [`shallowRef`](https://vue-composition-api-rfc.netlify.app/api.html#shallowref) (a ref that tracks its own .value mutation but doesn't make its value reactive) that is synced between client & server.
  * @param value This can be an initial value or a factory function that will be executed on server-side to get the initial value.
  * @param key Under the hood, `shallowSsrRef` requires a key to ensure that the ref values match between client and server. If you have added `@nuxtjs/composition-api` to your `buildModules`, this will be done automagically by an injected Babel plugin. If you need to do things differently, you can specify a key manually or add `@nuxtjs/composition-api/babel` to your Babel plugins.
- 
+
  * @example
   ```ts
   import { shallowSsrRef, onMounted } from '@nuxtjs/composition-api'
@@ -127,6 +133,7 @@ export const shallowSsrRef = <T>(
   key?: string
 ): Ref<T> => {
   validateKey(key)
+  const data = useContextRefs();
 
   if (process.client) return shallowRef(ssrValue(value, key))
 
@@ -167,13 +174,13 @@ export const shallowSsrRef = <T>(
       setup() {
         const _promise = ssrPromise(async () => myAsyncFunction())
         const resolvedPromise = ref(null)
-        
+
         onBeforeMount(async () => {
           resolvedPromise.value = await _promise
         })
 
         return {
-          // On the server, this will be null until the promise resolves. 
+          // On the server, this will be null until the promise resolves.
           // On the client, if server-rendered, this will always be the resolved promise.
           resolvedPromise,
         }
@@ -186,6 +193,7 @@ export const ssrPromise = <T>(
   key?: string
 ): Promise<T> => {
   validateKey(key)
+  const data = useContextRefs();
 
   const val = ssrValue(value, key)
   if (process.client) return Promise.resolve(val)

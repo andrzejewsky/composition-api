@@ -10,7 +10,7 @@ export { useFetch } from './fetch'
 export { globalPlugin, onGlobalSetup, setMetaPlugin } from './hooks'
 export { useMeta } from './meta'
 export { reqRef, reqSsrRef } from './req-ref'
-export { ssrRef, shallowSsrRef, setSSRContext, ssrPromise } from './ssr-ref'
+export { ssrRef, shallowSsrRef, ssrPromise } from './ssr-ref'
 export { useStatic } from './static'
 export * from './defineHelpers'
 

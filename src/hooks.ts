@@ -3,7 +3,6 @@ import type { SetupContext } from '@vue/composition-api'
 import { getHeadOptions } from './meta'
 
 import { reqRefs } from './req-ref'
-import { setSSRContext } from './ssr-ref'
 
 type SetupFunction = (
   this: void,
@@ -19,7 +18,7 @@ let globalSetup: Set<SetupFunction>
  * @example
     ```ts
     import { onGlobalSetup } from '@nuxtjs/composition-api'
-    
+
     export default () => {
       onGlobalSetup(() => {
         provide('globalKey', true)
@@ -63,6 +62,6 @@ export const globalPlugin: Plugin = context => {
 
   if (!process.server) return
   if (context.app.context.ssrContext) {
-    setSSRContext(context.app.context.ssrContext)
+    context.app.context.ssrContext.nuxt.ssrRefs = {};
   }
 }
